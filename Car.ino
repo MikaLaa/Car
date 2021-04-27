@@ -3,8 +3,9 @@
 #include <TinyGPS.h>
 #include <dht.h>
 
-#define S1 PB4
-#define DHT11 PB5
+
+#define S1 12
+#define DHT11 13
 
 
 TinyGPS gps;
@@ -24,10 +25,7 @@ int state = 1;
 int preState = 0;
 
 void setup() {
-  DDRB &= ~(1 << S1); // S1 input
-  PORTB |= 1 << S1;  // Pullup
- //pinMode(S1, INPUT_PULLUP);
-  Serial.begin(115200);
+  pinMode(S1, INPUT_PULLUP);
   ss.begin(9600);
   lcd.begin(16, 2);
   lcd.clear();
@@ -50,7 +48,6 @@ void loop() {
     }
     while (ss.available()) { // check for gps data
       char c = ss.read();
-      Serial.print(c);
       bool DataOK = gps.encode(c);
       if (DataOK) // encode gps data
       {
@@ -98,12 +95,12 @@ void delaySwitch() {
       if (state > 3) {
         state = 0;
       }
-      Serial.println(state);
       delay((200 - i) * 10);
       break;
     }
   }
 }
+
 void print_date(TinyGPS &gps) {
   int year;
   byte month, day, hour, minute, second, hundredths;
@@ -112,9 +109,8 @@ void print_date(TinyGPS &gps) {
   lcd.setCursor(0, 0);
   gps.crack_datetime(&year, &month, &day, &hour, &minute, &second, &hundredths,
                      &age);
-  if (age == TinyGPS::GPS_INVALID_AGE)
-    Serial.print("********** ******** ");
-  else {
+  if (age != TinyGPS::GPS_INVALID_AGE)
+  {
     char sz[16];
     sprintf(sz, "   %02d/%02d/%02d", month, day, year);
     lcd.print(sz);
@@ -137,16 +133,18 @@ void smartdelay(unsigned long ms) {
 
 void displayDHT() {
   int chk = DHT.read11(DHT11);
-  Serial.println(chk);
   if (chk == 0) {
     if (lastDHT == 0) {
       lcd.clear();
       lcd.setCursor(0, 0);
       lcd.print("Temp: ");
       float temperature = DHT.temperature;
-      if (temperature < 0) {
+      if (temperature < 0) 
+      {
         lcd.setCursor(8, 0);
-      } else {
+      } 
+      else 
+      {
         lcd.setCursor(9, 0);
       }
       lcd.print(temperature);
